@@ -16,7 +16,7 @@ const movies = [
   {
     title: "Sample Series 2",
     poster: "",
-    link: "#",
+    link: "https://playmogo.com/e/u15n1jsz1387",
     quality: "FHD",
     sub: "Eng Sub",
     type: "series",
