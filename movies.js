@@ -5,7 +5,7 @@ const movies = [
   {
     title: "Sample Movie 1",
     poster: "",
-    link: "#",
+    link: "[https://playmogo.com/e/u15n1jsz1387]",
     quality: "FHD",
     sub: "Eng Sub",
     type: "movie",
