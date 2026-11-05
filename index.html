@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giao Diện Lưới Video & Ảnh</title>
+    <title>Xhot - Lưới Video & Xem Chi Tiết</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,30 +11,48 @@
             background-color: #000;
             color: #fff;
             font-family: system-ui, -apple-system, sans-serif;
-            padding-bottom: 70px; /* Dành khoảng trống cho thanh menu đáy */
+            padding-bottom: 70px;
         }
         .feed-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 2px; /* Khoảng cách giữa các ô */
+            gap: 2px;
         }
         .card-item {
             position: relative;
-            aspect-ratio: 9 / 14; /* Tỷ lệ khung hình dọc */
+            aspect-ratio: 9 / 14;
             overflow: hidden;
             background-color: #18181b;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <!-- Lưới hiển thị các thẻ nội dung (2 cột) -->
-    <main class="feed-grid" id="feedGrid">
-        <!-- Dữ liệu sẽ được tự động đổ vào đây -->
-    </main>
+    <main class="feed-grid" id="feedGrid"></main>
+
+    <!-- TRÌNH XEM VIDEO TOÀN MÀN HÌNH (POPUP / MODAL) -->
+    <div id="videoModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center justify-center">
+        <!-- Nút Đóng -->
+        <button onclick="closePlayer()" class="absolute top-4 left-4 z-50 text-white text-2xl bg-black/50 w-10 h-10 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Trình phát Video -->
+        <div class="relative w-full h-full flex items-center justify-center bg-black">
+            <video id="playerVideo" class="w-full h-full object-cover" loop playsinline controls autoplay></video>
+        </div>
+
+        <!-- Thông tin tiêu đề & tác giả ở đáy video -->
+        <div class="absolute bottom-6 left-4 right-16 z-40 pointer-events-none">
+            <h3 id="playerUser" class="font-bold text-base mb-1 text-white"></h3>
+            <p id="playerTitle" class="text-sm text-slate-200 line-clamp-2"></p>
+        </div>
+    </div>
 
     <!-- Thanh Menu Đáy (Bottom Navigation Bar) -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur border-t border-zinc-800 py-2.5 px-6 flex justify-between items-center z-50">
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur border-t border-zinc-800 py-2.5 px-6 flex justify-between items-center z-40">
         <button class="text-white text-xl flex flex-col items-center">
             <i class="fa-solid fa-house"></i>
         </button>
@@ -53,7 +71,7 @@
     </nav>
 
     <script>
-        // DANH SÁCH DỮ LIỆU CÁC THẺ HÌNH ẢNH / VIDEO
+        // DANH SÁCH DỮ LIỆU CÁC VIDEO
         const feedData = [
             {
                 id: 1,
@@ -61,7 +79,8 @@
                 avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80",
                 views: "27.900 lượt xem",
                 title: "Hình ảnh khoảnh khắc ấn tượng trong ngày...",
-                image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80"
+                image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80",
+                videoUrl: "https://vjs.zencdn.net/v/oceans.mp4"
             },
             {
                 id: 2,
@@ -69,7 +88,8 @@
                 avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&q=80",
                 views: "13.800 lượt xem",
                 title: "Bộ ảnh đẹp phong cách mùa hè mới nhất #Photo #Style",
-                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80"
+                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
             },
             {
                 id: 3,
@@ -77,7 +97,8 @@
                 avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80",
                 views: "16.700 lượt xem",
                 title: "Bức ảnh tự sướng phong cách hiện đại đầy ấn tượng...",
-                image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80"
+                image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
             },
             {
                 id: 4,
@@ -85,166 +106,8 @@
                 avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
                 views: "17 nghìn lượt xem",
                 title: "Góc chụp đẹp ngoài bãi biển buổi chiều rực nắng...",
-                image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80"
-            },
-            {
-                id: 5,
-                user: "Nụ h...",
-                avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&q=80",
-                views: "18.200 lượt xem",
-                title: "Tạo dáng giữa không gian hiện đại sống động...",
-                image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80"
-            },
-            {
-                id: 6,
-                user: "Jessy...",
-                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80",
-                views: "1.761 lượt xem",
-                title: "Hình ảnh chia sẻ mới nhất từ chuyến đi thực tế...",
-                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80"
-            }
-        ];
-
-        // TỰ ĐỘNG TẠO KHUNG HIỂN THỊ
-        function renderFeed() {
-            const grid = document.getElementById('feedGrid');
-            grid.innerHTML = '';
-
-            feedData.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card-item';
-
-                card.innerHTML = `
-                    <!-- Ảnh nền -->
-                    <img src="${item.image}" class="w-full h-full object-cover" alt="Content">
-
-                    <!-- Lớp phủ bóng tối phía dưới để hiện chữ rõ hơn -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none"></div>
-
-                    <!-- Thông tin người đăng & lượt xem ở phía trên -->
-                    <div class="absolute top-2 left-2 right-2 flex items-center justify-between text-[11px] font-medium drop-shadow z-10">
-                        <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur px-2 py-0.5 rounded-full">
-                            <img src="${item.avatar}" class="w-4 h-4 rounded-full object-cover" alt="avatar">
-                            <span class="truncate max-w-[60px]">${item.user}</span>
-                        </div>
-                        <span class="text-slate-200">${item.views}</span>
-                    </div>
-
-                    <!-- Tiêu đề / Mô tả ở góc dưới -->
-                    <div class="absolute bottom-2 left-2 right-2 z-10">
-                        <p class="text-xs text-slate-100 line-clamp-2 leading-tight drop-shadow-md">
-                            ${item.title}
-                        </p>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        renderFeed();
-    </script>
-</body>
-</html>
-edium';
-            });
-            event.target.className = 'filter-btn bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium';
-
-            applySearchAndFilter();
-        }
-
-        document.getElementById('searchInput').addEventListener('input', applySearchAndFilter);
-
-        function applySearchAndFilter() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = moviesData.filter(movie => {
-                const matchesType = currentFilter === 'all' || movie.type === currentFilter;
-                const matchesSearch = movie.title.toLowerCase().includes(query);
-                return matchesType && matchesSearch;
-            });
-            renderMovies(filtered);
-        }
-
-        // 4. MỞ / ĐÓNG TRÌNH PHÁT VIDEO
-        function openPlayer(movieId) {
-            const movie = moviesData.find(m => m.id === movieId);
-            if (!movie) return;
-
-            document.getElementById('modalTitle').textContent = movie.title;
-            document.getElementById('modalDesc').textContent = movie.description;
-            document.getElementById('videoPlayer').src = movie.embedUrl;
-            document.getElementById('videoModal').classList.remove('hidden');
-        }
-
-        function closePlayer() {
-            document.getElementById('videoPlayer').src = '';
-            document.getElementById('videoModal').classList.add('hidden');
-        }
-
-        // 5. KHỞI TẠO BANNER VÀ TRANG WEB
-        function initPage() {
-            if (moviesData.length > 0) {
-                const top
-      m.type === "movie" || m.type === "le"; }
-
-  function normalize(s) {
-    return String(s || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D")
-      .toLowerCase()
-      .trim();
-  }
-
-  function el(tag, className, text) {
-    var node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function createCard(m) {
-    var card = el("div", "movie-card");
-    card.title = m.title || "";
-
-    card.addEventListener("click", function () {
-      if (m.link) {
-        window.open(m.link, "_blank");
-      }
-    });
-
-    var poster = el("div", "poster");
-
-    var fallback = el("div", "fallback", m.title || "Untitled");
-    poster.appendChild(fallback);
-
-    if (m.poster) {
-      var img = document.createElement("img");
-      img.src = m.poster;
-      img.alt = "Poster of " + (m.title || "");
-      img.loading = "lazy";
-      img.addEventListener("load", function () { fallback.style.display = "none"; });
-      img.addEventListener("error", function () { img.remove(); });
-      poster.appendChild(img);
-    }
-
-    var play = el("div", "play");
-    play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>';
-    poster.appendChild(play);
-
-    var badges = el("div", "badges");
-    badges.appendChild(el("span", "badge quality", m.quality || "FHD"));
-    badges.appendChild(el("span", "badge sub", m.sub || "Eng Sub"));
-    poster.appendChild(badges);
-
-    card.appendChild(poster);
-    card.appendChild(el("h3", "movie-title", m.title || "Untitled"));
-
-    var meta = [];
-    if (m.year) meta.push(m.year);
-    if (isSeries(m)) meta.push("TV Series");
-    if (isMovie(m)) meta.push("Movie");
-    if (meta.length) card.appendChild(el("p", "movie-meta", meta.join(" • ")));
+                image: "https
+                    meta", meta.join(" • ")));
 
     return card;
   }
