@@ -383,6 +383,8 @@
   function createCard(m) {
     var card = el("a", "movie-card");
     card.href = m.link || "#";
+card.target = "_blank";
+  
     card.title = m.title || "";
 
     var poster = el("div", "poster");
