@@ -162,7 +162,7 @@
   }
 
   /* ---------- Movie card ---------- */
-  .movie-card { display: block; }
+  .movie-card { display: block; cursor: pointer; }
 
   .poster {
     position: relative;
@@ -334,24 +334,220 @@
 (function () {
   "use strict";
 
-  /*
-    Each movie in movies.js is an object, for example:
-    {
-      title: "Movie title",
-      poster: "https://.../poster.jpg",
-      link: "movies/movie-title.html",
-      quality: "FHD",          // optional, defaults to "FHD"
-      sub: "Eng Sub",          // optional, defaults to "Eng Sub"
-      type: "series" | "movie",// "bo" and "le" also work (old values)
-      genres: ["Action"],      // list of genres
-      year: 2026,
-      isNew: true              // shows up under "New Movies"
-    }
-  */
   var MOVIES = (typeof movies !== "undefined" && Array.isArray(movies)) ? movies : [];
 
   var grid = document.getElementById("movie-grid");
   var titleEl = document.getElementById("section-title");
+  var searchInput = document.getElementById("search-input");
+  var navLinks = document.querySelectorAll(".nav-link[data-filter]");
+  var genreDropdown = document.getElementById("genre-dropdown");
+  var genreToggle = document.getElementById("genre-toggle");
+  var genreMenu = document.getElementById("genre-menu");
+
+  var state = { mode: "all", genre: "", query: "" };
+
+  function isSeries(m) { return m.type === "series" || m.type === "bo"; }
+  function isMovie(m) { return m.type === "movie" || m.type === "le"; }
+
+  function normalize(s) {
+    return String(s || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .toLowerCase()
+      .trim();
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function createCard(m) {
+    var card = el("a", "movie-card");
+    card.href = "javascript:void(0);";
+    card.title = m.title || "";
+
+    card.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (m.link) {
+        window.open(m.link, "_blank");
+      }
+    });
+
+    var poster = el("div", "poster");
+
+    var fallback = el("div", "fallback", m.title || "Untitled");
+    poster.appendChild(fallback);
+
+    if (m.poster) {
+      var img = document.createElement("img");
+      img.src = m.poster;
+      img.alt = "Poster of " + (m.title || "");
+      img.loading = "lazy";
+      img.addEventListener("load", function () { fallback.style.display = "none"; });
+      img.addEventListener("error", function () { img.remove(); });
+      poster.appendChild(img);
+    }
+
+    var play = el("div", "play");
+    play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>';
+    poster.appendChild(play);
+
+    var badges = el("div", "badges");
+    badges.appendChild(el("span", "badge quality", m.quality || "FHD"));
+    badges.appendChild(el("span", "badge sub", m.sub || "Eng Sub"));
+    poster.appendChild(badges);
+
+    card.appendChild(poster);
+    card.appendChild(el("h3", "movie-title", m.title || "Untitled"));
+
+    var meta = [];
+    if (m.year) meta.push(m.year);
+    if (isSeries(m)) meta.push("TV Series");
+    if (isMovie(m)) meta.push("Movie");
+    if (meta.length) card.appendChild(el("p", "movie-meta", meta.join(" • ")));
+
+    return card;
+  }
+
+  function getFiltered() {
+    var q = normalize(state.query);
+    return MOVIES.filter(function (m) {
+      if (state.mode === "new" && !m.isNew) return false;
+      if (state.mode === "series" && !isSeries(m)) return false;
+      if (state.mode === "genre") {
+        var gs = (m.genres || []).map(normalize);
+        if (gs.indexOf(normalize(state.genre)) === -1) return false;
+      }
+      if (q && normalize(m.title).indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+
+  function currentTitle() {
+    if (state.query.trim()) return "Results for “" + state.query.trim() + "”";
+    if (state.mode === "new") return "New Movies";
+    if (state.mode === "series") return "TV Series";
+    if (state.mode === "genre") return "Genre: " + state.genre;
+    return "All Movies";
+  }
+
+  function render() {
+    var list = getFiltered();
+    grid.innerHTML = "";
+    titleEl.textContent = currentTitle();
+
+    var count = el("small", "", list.length + (list.length === 1 ? " movie" : " movies"));
+    titleEl.appendChild(count);
+
+    if (!list.length) {
+      var msg = MOVIES.length
+        ? "No movies found. Try a different keyword."
+        : "No movie data yet. Add movies to movies.js.";
+      grid.appendChild(el("div", "empty-state", msg));
+      return;
+    }
+
+    var frag = document.createDocumentFragment();
+    list.forEach(function (m) { frag.appendChild(createCard(m)); });
+    grid.appendChild(frag);
+  }
+
+  function updateActive() {
+    navLinks.forEach(function (b) {
+      b.classList.toggle("active", state.mode === b.dataset.filter);
+    });
+    genreToggle.classList.toggle("active", state.mode === "genre");
+    genreMenu.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", state.mode === "genre" && b.dataset.genre === state.genre);
+    });
+  }
+
+  function buildGenreMenu() {
+    var seen = {};
+    var genres = [];
+    MOVIES.forEach(function (m) {
+      (m.genres || []).forEach(function (g) {
+        var key = normalize(g);
+        if (!seen[key]) { seen[key] = true; genres.push(g); }
+      });
+    });
+    genres.sort(function (a, b) { return a.localeCompare(b, "en"); });
+
+    genreMenu.innerHTML = "";
+    if (!genres.length) {
+      genreMenu.appendChild(el("div", "dropdown-empty", "No genres yet"));
+      return;
+    }
+    genres.forEach(function (g) {
+      var b = el("button", "", g);
+      b.type = "button";
+      b.dataset.genre = g;
+      b.setAttribute("role", "menuitem");
+      b.addEventListener("click", function () {
+        state.mode = "genre";
+        state.genre = g;
+        closeDropdown();
+        updateActive();
+        render();
+      });
+      genreMenu.appendChild(b);
+    });
+  }
+
+  function closeDropdown() {
+    genreDropdown.classList.remove("open");
+    genreToggle.setAttribute("aria-expanded", "false");
+  }
+
+  navLinks.forEach(function (b) {
+    b.addEventListener("click", function () {
+      state.mode = b.dataset.filter;
+      state.genre = "";
+      closeDropdown();
+      updateActive();
+      render();
+    });
+  });
+
+  genreToggle.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var open = genreDropdown.classList.toggle("open");
+    genreToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!genreDropdown.contains(e.target)) closeDropdown();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeDropdown();
+  });
+
+  searchInput.addEventListener("input", function () {
+    state.query = searchInput.value;
+    render();
+  });
+
+  document.getElementById("site-logo").addEventListener("click", function (e) {
+    e.preventDefault();
+    state = { mode: "all", genre: "", query: "" };
+    searchInput.value = "";
+    updateActive();
+    render();
+  });
+
+  buildGenreMenu();
+  updateActive();
+  render();
+})();
+</script>
+</body>
+</html>
+yId("section-title");
   var searchInput = document.getElementById("search-input");
   var navLinks = document.querySelectorAll(".nav-link[data-filter]");
   var genreDropdown = document.getElementById("genre-dropdown");
