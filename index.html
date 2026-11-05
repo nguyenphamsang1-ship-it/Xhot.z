@@ -1,353 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
+ <!DOCTYPE html>
+<html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>Xhot.com – Watch Movies Online with English Subtitles</title>
-<meta name="description" content="Watch new movies, TV series and movies by genre in FHD quality with English subtitles.">
-<style>
-  :root {
-    --bg: #000;
-    --surface: #131316;
-    --line: #26262b;
-    --text: #fff;
-    --muted: #9a9aa5;
-    --accent: #ff4655;
-    --gold: #f5b73b;
-    --blue: #3b9cf5;
-    --radius: 10px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
-
-  a { color: inherit; text-decoration: none; }
-  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-  ul { list-style: none; }
-
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* ---------- Header ---------- */
-  .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(0, 0, 0, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .header-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  .logo span { color: var(--accent); }
-
-  .main-nav { display: flex; align-items: center; gap: 4px; }
-
-  .nav-link {
-    padding: 8px 14px;
-    border-radius: 8px;
-    color: var(--muted);
-    font-weight: 600;
-    font-size: 0.95rem;
-    white-space: nowrap;
-    transition: color 0.2s, background 0.2s;
-  }
-  .nav-link:hover { color: var(--text); background: var(--surface); }
-  .nav-link.active { color: var(--text); background: var(--surface); box-shadow: inset 0 -2px 0 var(--accent); }
-
-  .dropdown { position: relative; }
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    min-width: 200px;
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 6px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-    display: none;
-    columns: 1;
-  }
-  .dropdown.open .dropdown-menu { display: block; }
-  .dropdown-menu button {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 8px 12px;
-    border-radius: 6px;
-    color: var(--muted);
-    font-size: 0.92rem;
-  }
-  .dropdown-menu button:hover,
-  .dropdown-menu button.active { background: #1f1f25; color: var(--text); }
-  .dropdown-empty { padding: 8px 12px; color: var(--muted); font-size: 0.9rem; }
-
-  .search-form { margin-left: auto; position: relative; flex: 0 1 340px; min-width: 200px; }
-  .search-form input {
-    width: 100%;
-    padding: 10px 16px 10px 40px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--text);
-    font: inherit;
-    font-size: 0.95rem;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .search-form input::placeholder { color: var(--muted); }
-  .search-form input:focus { outline: none; border-color: var(--accent); background: #1a1a1f; }
-  .search-form svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  /* ---------- Main ---------- */
-  main {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 28px 20px 60px;
-  }
-
-  .section-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
-  .section-title small { color: var(--muted); font-weight: 500; font-size: 0.9rem; margin-left: 8px; }
-
-  #movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 22px 16px;
-  }
-
-  .empty-state {
-    grid-column: 1 / -1;
-    padding: 60px 20px;
-    text-align: center;
-    color: var(--muted);
-  }
-
-  /* ---------- Movie card ---------- */
-  .movie-card { display: block; cursor: pointer; }
-
-  .poster {
-    position: relative;
-    aspect-ratio: 2 / 3;
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: linear-gradient(160deg, #23232b, #101014);
-    border: 1px solid var(--line);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  }
-
-  .poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease, filter 0.3s ease;
-  }
-
-  .poster .fallback {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    text-align: center;
-    color: var(--muted);
-    font-weight: 700;
-    font-size: 1rem;
-  }
-
-  .poster::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent 55%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .play {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 2;
-    width: 52px;
-    height: 52px;
-    margin: -26px 0 0 -26px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0.7);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-  .play svg { width: 22px; height: 22px; margin-left: 3px; fill: #fff; }
-
-  .badges {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    z-index: 3;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .badge {
-    padding: 2px 8px;
-    border-radius: 5px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1.5;
-    color: #000;
-  }
-  .badge.quality { background: var(--gold); }
-  .badge.sub { background: var(--blue); color: #fff; }
-
-  .movie-title {
-    margin-top: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transition: color 0.2s;
-  }
-  .movie-meta { margin-top: 2px; font-size: 0.8rem; color: var(--muted); }
-
-  .movie-card:hover .poster,
-  .movie-card:focus-visible .poster {
-    transform: translateY(-6px);
-    border-color: var(--accent);
-    box-shadow: 0 14px 30px rgba(255, 70, 85, 0.22);
-  }
-  .movie-card:hover .poster img,
-  .movie-card:focus-visible .poster img { transform: scale(1.08); filter: brightness(0.8); }
-  .movie-card:hover .poster::after,
-  .movie-card:focus-visible .poster::after { opacity: 1; }
-  .movie-card:hover .play,
-  .movie-card:focus-visible .play { opacity: 1; transform: scale(1); }
-  .movie-card:hover .movie-title,
-  .movie-card:focus-visible .movie-title { color: var(--accent); }
-
-  /* ---------- Footer ---------- */
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 24px 20px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
-
-  /* ---------- Responsive ---------- */
-  @media (max-width: 760px) {
-    .header-inner { gap: 10px 16px; padding: 10px 14px; }
-    .search-form { order: 2; flex: 1 1 100%; margin-left: 0; }
-    .logo { font-size: 1.3rem; }
-    .main-nav { margin-left: auto; overflow-x: auto; max-width: 100%; }
-    .dropdown-menu { position: fixed; left: 14px; right: 14px; top: auto; min-width: 0; margin-top: 8px; }
-    main { padding: 20px 14px 48px; }
-    #movie-grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 18px 12px; }
-    .section-title { font-size: 1.2rem; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; scroll-behavior: auto !important; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xhot.com - Xem Phim Trực Tuyến Miễn Phí</title>
+    <!-- Tailwind CSS qua CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .movie-card:hover .play-icon { opacity: 1; transform: scale(1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
+    </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-<header class="site-header">
-  <div class="header-inner">
-    <a href="./" class="logo" id="site-logo" aria-label="Xhot.com home">Xhot<span>.com</span></a>
+    <!-- Header / Nav -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <a href="#" class="text-2xl font-black text-red-600 tracking-wider">XHOT<span class="text-white text-base font-normal">.COM</span></a>
+            
+            <!-- Tìm kiếm -->
+            <div class="relative flex-1 max-w-md">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm phim, diễn viên..." 
+                    class="w-full bg-slate-800 text-sm text-white rounded-full pl-10 pr-4 py-2 border border-slate-700 focus:outline-none focus:border-red-500 transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+            </div>
 
-    <nav class="main-nav" aria-label="Main menu">
-      <button class="nav-link" data-filter="new" type="button">New Movies</button>
-      <button class="nav-link" data-filter="series" type="button">TV Series</button>
-      <div class="dropdown" id="genre-dropdown">
-        <button class="nav-link" id="genre-toggle" type="button" aria-haspopup="true" aria-expanded="false">Genres ▾</button>
-        <div class="dropdown-menu" id="genre-menu" role="menu"></div>
-      </div>
-    </nav>
+            <!-- Bộ lọc loại phim -->
+            <div class="flex gap-2 text-sm">
+                <button onclick="filterMovies('all')" class="filter-btn bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium">Tất cả</button>
+                <button onclick="filterMovies('movie')" class="filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium">Phim Lẻ</button>
+                <button onclick="filterMovies('tv')" class="filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium">Phim Bộ</button>
+            </div>
+        </div>
+    </header>
 
-    <form class="search-form" id="search-form" role="search" onsubmit="return false;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" id="search-input" placeholder="Search movies..." aria-label="Search movies" autocomplete="off">
-    </form>
-  </div>
-</header>
+    <!-- Nội dung chính -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+        <!-- Banner Phim Nổi Bật -->
+        <div id="heroBanner" class="relative rounded-2xl overflow-hidden mb-8 border border-slate-800 bg-slate-800 h-64 sm:h-80 flex items-end p-6">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
+            <div class="relative z-20 max-w-xl">
+                <span class="bg-red-600 text-xs px-2 py-1 rounded font-bold uppercase tracking-wider mb-2 inline-block">Nổi bật</span>
+                <h1 id="heroTitle" class="text-2xl sm:text-4xl font-bold mb-2">Đang tải phim nổi bật...</h1>
+                <p id="heroDesc" class="text-slate-300 text-sm line-clamp-2 mb-4">Mô tả phim nổi bật sẽ xuất hiện ở đây.</p>
+                <button id="heroPlayBtn" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg flex items-center gap-2 text-sm transition">
+                    <i class="fa-solid fa-play"></i> Xem Ngay
+                </button>
+            </div>
+        </div>
 
-<main>
-  <h1 class="section-title" id="section-title">All Movies</h1>
-  <div id="movie-grid"></div>
-</main>
+        <!-- Danh sách phim -->
+        <section>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-fire text-red-500"></i> Danh Sách Phim Mới
+            </h2>
+            <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <!-- Mã HTML các thẻ phim sẽ được JS tự động đổ vào đây -->
+            </div>
+        </section>
+    </main>
 
-<footer>© 2026 Xhot.com. All content belongs to its respective owners.</footer>
+    <!-- Modal Xem Phim (Trình phát Video Popup) -->
+    <div id="videoModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center p-4 border-b border-slate-800">
+                <h3 id="modalTitle" class="font-bold text-lg text-white">Xem Phim</h3>
+                <button onclick="closePlayer()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="relative aspect-video w-full bg-black">
+                <iframe id="videoPlayer" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="p-4 overflow-y-auto custom-scrollbar">
+                <p id="modalDesc" class="text-slate-300 text-sm mb-3"></p>
+                <div id="episodeList" class="flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+    </div>
 
-<!-- Movie data -->
-<script src="movies.js"></script>
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-12 text-center text-slate-500 text-sm">
+        <p>© 2026 Xhot.com. Mọi nội dung thuộc về chủ sở hữu tương ứng.</p>
+    </footer>
 
-<script>
-(function () {
-  "use strict";
+    <!-- JAVASCRIPT - Xử lý dữ liệu và phát video -->
+    <script>
+        // 1. DỮ LIỆU DANH SÁCH PHIM (Bạn chỉ cần sửa/thêm phim ở phần này)
+        const moviesData = [
+            {
+                id: 1,
+                title: "Phim Mẫu 1: Trận Chiến Cuối Cùng",
+                type: "movie", // 'movie' (phim lẻ) hoặc 'tv' (phim bộ)
+                year: 2026,
+                quality: "FHD",
+                sub: "Vietsub",
+                poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80",
+                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Link nhúng phim
+                description: "Một bộ phim hành động viễn tưởng đầy kịch tính về cuộc chiến bảo vệ Trái Đất."
+            },
+            {
+                id: 2,
+                title: "Phim Mẫu 2: Thành Phố Bóng Đêm",
+                type: "tv",
+                year: 2025,
+                quality: "4K",
+                sub: "Thuyết Minh",
+                poster: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=500&q=80",
+                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                description: "Bộ phim truyền hình bí ẩn điều tra các vụ án bí mật giữa lòng thành phố."
+            },
+            {
+                id: 3,
+                title: "Phim Mẫu 3: Hành Trình Vô Tận",
+                type: "movie",
+                year: 2026,
+                quality: "FHD",
+                sub: "Vietsub",
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=80",
+                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                description: "Chuyến phiêu lưu khám phá những vùng đất huyền bí chưa từng có người đặt chân tới."
+            },
+            {
+                id: 4,
+                title: "Phim Mẫu 4: Siêu Điệp Viên",
+                type: "tv",
+                year: 2025,
+                quality: "FHD",
+                sub: "Vietsub",
+                poster: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&q=80",
+                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                description: "Những pha rượt đuổi nghẹt thở và các âm mưu tình báo nguy hiểm."
+            }
+        ];
 
-  var MOVIES = (typeof movies !== "undefined" && Array.isArray(movies)) ? movies : [];
+        let currentFilter = 'all';
 
-  var grid = document.getElementById("movie-grid");
-  var titleEl = document.getElementById("section-title");
-  var searchInput = document.getElementById("search-input");
-  var navLinks = document.querySelectorAll(".nav-link[data-filter]");
-  var genreDropdown = document.getElementById("genre-dropdown");
-  var genreToggle = document.getElementById("genre-toggle");
-  var genreMenu = document.getElementById("genre-menu");
+        // 2. HIỂN THỊ DANH SÁCH PHIM
+        function renderMovies(data) {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = '';
 
-  var state = { mode: "all", genre: "", query: "" };
+            if (data.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Không tìm thấy bộ phim nào phù hợp.</p>';
+                return;
+            }
 
-  function isSeries(m) { return m.type === "series" || m.type === "bo"; }
-  function isMovie(m) { return m.type === "movie" || m.type === "le"; }
+            data.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card cursor-pointer group bg-slate-900 rounded-xl overflow-hidden border border-slate-800 transition hover:border-slate-700';
+                card.onclick = () => openPlayer(movie.id);
+
+                card.innerHTML = `
+                    <div class="relative aspect-[2/3] overflow-hidden bg-slate-800">
+                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute top-2 left-2 flex gap-1">
+                            <span class="bg-amber-500 text-black font-extrabold text-[10px] px-1.5 py-0.5 rounded">${movie.quality}</span>
+                            <span class="bg-blue-600 text-white font-semibold text-[10px] px-1.5 py-0.5 rounded">${movie.sub}</span>
+                        </div>
+                        <div class="play-icon absolute inset-0 bg-black/50 opacity-0 flex items-center justify-center transition duration-300">
+                            <div class="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
+                                <i class="fa-solid fa-play text-lg ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-sm line-clamp-1 group-hover:text-red-500 transition">${movie.title}</h3>
+                        <p class="text-xs text-slate-400 mt-1">${movie.year} • ${movie.type === 'movie' ? 'Phim Lẻ' : 'Phim Bộ'}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 3. TÌM KIẾM & BỘ LỌC PHIM
+        function filterMovies(type) {
+            currentFilter = type;
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.className = 'filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium';
+            });
+            event.target.className = 'filter-btn bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium';
+
+            applySearchAndFilter();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', applySearchAndFilter);
+
+        function applySearchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = moviesData.filter(movie => {
+                const matchesType = currentFilter === 'all' || movie.type === currentFilter;
+                const matchesSearch = movie.title.toLowerCase().includes(query);
+                return matchesType && matchesSearch;
+            });
+            renderMovies(filtered);
+        }
+
+        // 4. MỞ / ĐÓNG TRÌNH PHÁT VIDEO
+        function openPlayer(movieId) {
+            const movie = moviesData.find(m => m.id === movieId);
+            if (!movie) return;
+
+            document.getElementById('modalTitle').textContent = movie.title;
+            document.getElementById('modalDesc').textContent = movie.description;
+            document.getElementById('videoPlayer').src = movie.embedUrl;
+            document.getElementById('videoModal').classList.remove('hidden');
+        }
+
+        function closePlayer() {
+            document.getElementById('videoPlayer').src = '';
+            document.getElementById('videoModal').classList.add('hidden');
+        }
+
+        // 5. KHỞI TẠO BANNER VÀ TRANG WEB
+        function initPage() {
+            if (moviesData.length > 0) {
+                const top
+      m.type === "movie" || m.type === "le"; }
 
   function normalize(s) {
     return String(s || "")
