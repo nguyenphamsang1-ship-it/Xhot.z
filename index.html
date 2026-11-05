@@ -1,187 +1,151 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xhot.com - Xem Phim Trực Tuyến Miễn Phí</title>
-    <!-- Tailwind CSS qua CDN -->
+    <title>Giao Diện Lưới Video & Ảnh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-        .movie-card:hover .play-icon { opacity: 1; transform: scale(1); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding-bottom: 70px; /* Dành khoảng trống cho thanh menu đáy */
+        }
+        .feed-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px; /* Khoảng cách giữa các ô */
+        }
+        .card-item {
+            position: relative;
+            aspect-ratio: 9 / 14; /* Tỷ lệ khung hình dọc */
+            overflow: hidden;
+            background-color: #18181b;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <!-- Header / Nav -->
-    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <a href="#" class="text-2xl font-black text-red-600 tracking-wider">XHOT<span class="text-white text-base font-normal">.COM</span></a>
-            
-            <!-- Tìm kiếm -->
-            <div class="relative flex-1 max-w-md">
-                <input type="text" id="searchInput" placeholder="Tìm kiếm phim, diễn viên..." 
-                    class="w-full bg-slate-800 text-sm text-white rounded-full pl-10 pr-4 py-2 border border-slate-700 focus:outline-none focus:border-red-500 transition">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-            </div>
-
-            <!-- Bộ lọc loại phim -->
-            <div class="flex gap-2 text-sm">
-                <button onclick="filterMovies('all')" class="filter-btn bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium">Tất cả</button>
-                <button onclick="filterMovies('movie')" class="filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium">Phim Lẻ</button>
-                <button onclick="filterMovies('tv')" class="filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium">Phim Bộ</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Nội dung chính -->
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
-        <!-- Banner Phim Nổi Bật -->
-        <div id="heroBanner" class="relative rounded-2xl overflow-hidden mb-8 border border-slate-800 bg-slate-800 h-64 sm:h-80 flex items-end p-6">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
-            <div class="relative z-20 max-w-xl">
-                <span class="bg-red-600 text-xs px-2 py-1 rounded font-bold uppercase tracking-wider mb-2 inline-block">Nổi bật</span>
-                <h1 id="heroTitle" class="text-2xl sm:text-4xl font-bold mb-2">Đang tải phim nổi bật...</h1>
-                <p id="heroDesc" class="text-slate-300 text-sm line-clamp-2 mb-4">Mô tả phim nổi bật sẽ xuất hiện ở đây.</p>
-                <button id="heroPlayBtn" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg flex items-center gap-2 text-sm transition">
-                    <i class="fa-solid fa-play"></i> Xem Ngay
-                </button>
-            </div>
-        </div>
-
-        <!-- Danh sách phim -->
-        <section>
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-fire text-red-500"></i> Danh Sách Phim Mới
-            </h2>
-            <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <!-- Mã HTML các thẻ phim sẽ được JS tự động đổ vào đây -->
-            </div>
-        </section>
+    <!-- Lưới hiển thị các thẻ nội dung (2 cột) -->
+    <main class="feed-grid" id="feedGrid">
+        <!-- Dữ liệu sẽ được tự động đổ vào đây -->
     </main>
 
-    <!-- Modal Xem Phim (Trình phát Video Popup) -->
-    <div id="videoModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center p-4 border-b border-slate-800">
-                <h3 id="modalTitle" class="font-bold text-lg text-white">Xem Phim</h3>
-                <button onclick="closePlayer()" class="text-slate-400 hover:text-white text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="relative aspect-video w-full bg-black">
-                <iframe id="videoPlayer" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
-            </div>
-            <div class="p-4 overflow-y-auto custom-scrollbar">
-                <p id="modalDesc" class="text-slate-300 text-sm mb-3"></p>
-                <div id="episodeList" class="flex flex-wrap gap-2"></div>
-            </div>
-        </div>
-    </div>
+    <!-- Thanh Menu Đáy (Bottom Navigation Bar) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur border-t border-zinc-800 py-2.5 px-6 flex justify-between items-center z-50">
+        <button class="text-white text-xl flex flex-col items-center">
+            <i class="fa-solid fa-house"></i>
+        </button>
+        <button class="text-white text-xl flex flex-col items-center">
+            <i class="fa-solid fa-hashtag"></i>
+        </button>
+        <button class="bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-lg">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <button class="text-slate-400 text-xl flex flex-col items-center hover:text-white">
+            <i class="fa-regular fa-bell"></i>
+        </button>
+        <button class="w-7 h-7 rounded-full overflow-hidden border border-slate-500">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" class="w-full h-full object-cover" alt="Profile">
+        </button>
+    </nav>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-12 text-center text-slate-500 text-sm">
-        <p>© 2026 Xhot.com. Mọi nội dung thuộc về chủ sở hữu tương ứng.</p>
-    </footer>
-
-    <!-- JAVASCRIPT - Xử lý dữ liệu và phát video -->
     <script>
-        // 1. DỮ LIỆU DANH SÁCH PHIM (Bạn chỉ cần sửa/thêm phim ở phần này)
-        const moviesData = [
+        // DANH SÁCH DỮ LIỆU CÁC THẺ HÌNH ẢNH / VIDEO
+        const feedData = [
             {
                 id: 1,
-                title: "Phim Mẫu 1: Trận Chiến Cuối Cùng",
-                type: "movie", // 'movie' (phim lẻ) hoặc 'tv' (phim bộ)
-                year: 2026,
-                quality: "FHD",
-                sub: "Vietsub",
-                poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80",
-                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Link nhúng phim
-                description: "Một bộ phim hành động viễn tưởng đầy kịch tính về cuộc chiến bảo vệ Trái Đất."
+                user: "Nụ...",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80",
+                views: "27.900 lượt xem",
+                title: "Hình ảnh khoảnh khắc ấn tượng trong ngày...",
+                image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80"
             },
             {
                 id: 2,
-                title: "Phim Mẫu 2: Thành Phố Bóng Đêm",
-                type: "tv",
-                year: 2025,
-                quality: "4K",
-                sub: "Thuyết Minh",
-                poster: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=500&q=80",
-                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-                description: "Bộ phim truyền hình bí ẩn điều tra các vụ án bí mật giữa lòng thành phố."
+                user: "Hôn...",
+                avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&q=80",
+                views: "13.800 lượt xem",
+                title: "Bộ ảnh đẹp phong cách mùa hè mới nhất #Photo #Style",
+                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80"
             },
             {
                 id: 3,
-                title: "Phim Mẫu 3: Hành Trình Vô Tận",
-                type: "movie",
-                year: 2026,
-                quality: "FHD",
-                sub: "Vietsub",
-                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=80",
-                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-                description: "Chuyến phiêu lưu khám phá những vùng đất huyền bí chưa từng có người đặt chân tới."
+                user: "Nụ h...",
+                avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80",
+                views: "16.700 lượt xem",
+                title: "Bức ảnh tự sướng phong cách hiện đại đầy ấn tượng...",
+                image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=600&q=80"
             },
             {
                 id: 4,
-                title: "Phim Mẫu 4: Siêu Điệp Viên",
-                type: "tv",
-                year: 2025,
-                quality: "FHD",
-                sub: "Vietsub",
-                poster: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&q=80",
-                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-                description: "Những pha rượt đuổi nghẹt thở và các âm mưu tình báo nguy hiểm."
+                user: "Nụ...",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
+                views: "17 nghìn lượt xem",
+                title: "Góc chụp đẹp ngoài bãi biển buổi chiều rực nắng...",
+                image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80"
+            },
+            {
+                id: 5,
+                user: "Nụ h...",
+                avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&q=80",
+                views: "18.200 lượt xem",
+                title: "Tạo dáng giữa không gian hiện đại sống động...",
+                image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80"
+            },
+            {
+                id: 6,
+                user: "Jessy...",
+                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80",
+                views: "1.761 lượt xem",
+                title: "Hình ảnh chia sẻ mới nhất từ chuyến đi thực tế...",
+                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80"
             }
         ];
 
-        let currentFilter = 'all';
-
-        // 2. HIỂN THỊ DANH SÁCH PHIM
-        function renderMovies(data) {
-            const grid = document.getElementById('movieGrid');
+        // TỰ ĐỘNG TẠO KHUNG HIỂN THỊ
+        function renderFeed() {
+            const grid = document.getElementById('feedGrid');
             grid.innerHTML = '';
 
-            if (data.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center text-slate-500 py-8">Không tìm thấy bộ phim nào phù hợp.</p>';
-                return;
-            }
-
-            data.forEach(movie => {
+            feedData.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'movie-card cursor-pointer group bg-slate-900 rounded-xl overflow-hidden border border-slate-800 transition hover:border-slate-700';
-                card.onclick = () => openPlayer(movie.id);
+                card.className = 'card-item';
 
                 card.innerHTML = `
-                    <div class="relative aspect-[2/3] overflow-hidden bg-slate-800">
-                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        <div class="absolute top-2 left-2 flex gap-1">
-                            <span class="bg-amber-500 text-black font-extrabold text-[10px] px-1.5 py-0.5 rounded">${movie.quality}</span>
-                            <span class="bg-blue-600 text-white font-semibold text-[10px] px-1.5 py-0.5 rounded">${movie.sub}</span>
+                    <!-- Ảnh nền -->
+                    <img src="${item.image}" class="w-full h-full object-cover" alt="Content">
+
+                    <!-- Lớp phủ bóng tối phía dưới để hiện chữ rõ hơn -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none"></div>
+
+                    <!-- Thông tin người đăng & lượt xem ở phía trên -->
+                    <div class="absolute top-2 left-2 right-2 flex items-center justify-between text-[11px] font-medium drop-shadow z-10">
+                        <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur px-2 py-0.5 rounded-full">
+                            <img src="${item.avatar}" class="w-4 h-4 rounded-full object-cover" alt="avatar">
+                            <span class="truncate max-w-[60px]">${item.user}</span>
                         </div>
-                        <div class="play-icon absolute inset-0 bg-black/50 opacity-0 flex items-center justify-center transition duration-300">
-                            <div class="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg">
-                                <i class="fa-solid fa-play text-lg ml-1"></i>
-                            </div>
-                        </div>
+                        <span class="text-slate-200">${item.views}</span>
                     </div>
-                    <div class="p-3">
-                        <h3 class="font-semibold text-sm line-clamp-1 group-hover:text-red-500 transition">${movie.title}</h3>
-                        <p class="text-xs text-slate-400 mt-1">${movie.year} • ${movie.type === 'movie' ? 'Phim Lẻ' : 'Phim Bộ'}</p>
+
+                    <!-- Tiêu đề / Mô tả ở góc dưới -->
+                    <div class="absolute bottom-2 left-2 right-2 z-10">
+                        <p class="text-xs text-slate-100 line-clamp-2 leading-tight drop-shadow-md">
+                            ${item.title}
+                        </p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // 3. TÌM KIẾM & BỘ LỌC PHIM
-        function filterMovies(type) {
-            currentFilter = type;
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => {
-                btn.className = 'filter-btn bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-medium';
+        renderFeed();
+    </script>
+</body>
+</html>
+edium';
             });
             event.target.className = 'filter-btn bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium';
 
